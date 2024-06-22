@@ -6,7 +6,7 @@ import time
 from tqdm.auto import tqdm as tqdm_original
 
 import torch
-from transformers import AutoModel, AutoTokenizer
+from transformers import AutoModel, AutoTokenizer,AutoModelForCausalLM
 
 
 CPU_DEVICE = torch.device('cpu')
@@ -27,13 +27,37 @@ def get_model(model_name, tokenizer, device_id):
     if 'gpt2' in model_name or "bert" in model_name:
         model = AutoModel.from_pretrained(model_name, pad_token_id=tokenizer.eos_token_id).to(device)
         model = model.eval()
+    elif 'olmo' in model_name or 'OLMo' in model_name:
+        print("olmo model")
+        model = AutoModelForCausalLM.from_pretrained(
+            model_name,
+            from_tf=bool(".ckpt" in model_name),
+            trust_remote_code=True,
+            low_cpu_mem_usage=False,
+            use_flash_attention_2=False,
+            revision="main"
+        )
+        model = model.eval()
     else:
         raise ValueError(f'Unknown model: {model_name}')
     return model
 
 def get_tokenizer(model_name='gpt2'):
+    from hf_olmo import OLMoForCausalLM, OLMoTokenizerFast
+
     if 'gpt2' in model_name or "bert" in model_name:
         tokenizer = AutoTokenizer.from_pretrained(model_name)
+    elif 'olmo' in model_name:
+        print("olmo tokenizer")
+        tokenizer = AutoTokenizer.from_pretrained(
+            model_name,
+            trust_remote_code=True,
+            use_fast=True,
+            revision="main"
+        )
+    elif 'OLMo' in model_name:
+        tokenizer = OLMoTokenizerFast.from_pretrained("allenai/OLMo-7B-Instruct")
+
     else:
         raise ValueError(f'Unknown model: {model_name}')
     return tokenizer

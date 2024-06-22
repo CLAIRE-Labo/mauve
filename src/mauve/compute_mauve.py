@@ -37,7 +37,7 @@ def compute_mauve(
         num_buckets='auto', pca_max_data=-1, kmeans_explained_var=0.9,
         kmeans_num_redo=5, kmeans_max_iter=500,
         featurize_model_name='gpt2-large', device_id=-1, max_text_length=1024,
-        divergence_curve_discretization_size=25, mauve_scaling_factor=5,
+        divergence_curve_discretization_size=25, mauve_scaling_factor=1,
         verbose=False, seed=25, batch_size=1, use_float64=False,
 ):
 
@@ -156,19 +156,19 @@ def get_features_from_input(features, tokenized_texts, texts,
         if tokenized_texts is None:
             # tokenize texts
             if TOKENIZER is None or MODEL_NAME != featurize_model_name:
-                if verbose: print('Loading tokenizer')
+                if verbose: print('Loading tokenizer for '+ featurize_model_name)
                 TOKENIZER = get_tokenizer(featurize_model_name)
-            if verbose: print('Tokenizing text...')
+            if verbose: print('Tokenizing text...'+ featurize_model_name)
             tokenized_texts = [
                 TOKENIZER.encode(sen, return_tensors='pt', truncation=True, max_length=max_len)
                 for sen in texts
             ]
         # use tokenized_texts to featurize
         if TOKENIZER is None or MODEL_NAME != featurize_model_name:
-            if verbose: print('Loading tokenizer')
+            if verbose: print('Loading tokenizer for '+ featurize_model_name)
             TOKENIZER = get_tokenizer(featurize_model_name)
         if MODEL is None or MODEL_NAME != featurize_model_name:
-            if verbose: print('Loading model')
+            if verbose: print('Loading model for '+ featurize_model_name)
             MODEL = get_model(featurize_model_name, TOKENIZER, device_id)
             MODEL_NAME = featurize_model_name
         else:
